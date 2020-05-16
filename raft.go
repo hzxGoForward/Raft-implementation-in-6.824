@@ -25,7 +25,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
 	"../labgob"
 	"../labrpc"
 )
@@ -69,20 +68,20 @@ type Raft struct {
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
-	role        int        // 当前角色,follower, candidate, leader
-	currentTerm int        // 当前所处的term
-	votedFor    int        // 当前term向谁投票，默认为-1
-	log         []LogEntry // log日志
-	commitIndex int        // server commit的日志的索引
-	lastApplied int        // server 最后applied的日志索引
-	timeout     int64      // server 等待心跳超时的时间
-	beatTime    int64      // 设置心跳发送时间
+	role        int              // 当前角色,follower, candidate, leader
+	currentTerm int              // 当前所处的term
+	votedFor    int        		 // 当前term向谁投票，默认为-1
+	log         []LogEntry       // log日志
+	commitIndex int              // server commit的日志的索引
+	lastApplied int              // server 最后applied的日志索引
+	timeout     int64            // server 等待心跳超时的时间
+	beatTime    int64            // 设置心跳发送时间
 	// leader 专属变量
-	nextIndex   []int // 向每个follower同步的日志起始索引
-	matchIndex  []int // 与每个follower匹配的日志起始索引
-	beatSentCnt int   // 发送心跳次数
+	nextIndex   []int            // 向每个follower同步的日志起始索引
+	matchIndex  []int            // 与每个follower匹配的日志起始索引
+	beatSentCnt int              // 发送心跳次数
 	// 向client通知执行情况
-	ch chan ApplyMsg // 通道声明
+	ch chan ApplyMsg             // 通道声明
 }
 
 func (rf *Raft) DPrintf(format string, a ...interface{}) (n int, err error) {
@@ -283,7 +282,6 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		rf.nextIndex[rf.me] = len(rf.log)
 		rf.log = append(rf.log, entry)
 		// rf.DPrintf("[%d] add new log (%v), index: %d, term: %d,log:%v", rf.me, command, index, term, rf.log)
-
 		rf.persist() // 添加log后persist
 		rf.DPrintf("[%d] add new log (%v), index: %d, term: %d, 持久化成功!", rf.me, command, index, term)
 	}
@@ -500,7 +498,6 @@ func (rf *Raft) HandleHeartBeat(args *AppendEntries, reply *BeatReply) {
 			}
 		}
 		// 只有日志匹配的前提下才能修改commit的index
-		//
 		if reply.Success && args.LeaderCommit > rf.commitIndex {
 			rf.commitIndex = args.LeaderCommit
 			if rf.commitIndex > len(rf.log)-1 {
@@ -736,8 +733,6 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.Apply()
 	rf.DPrintf("[%d] 初始化为follower, 日志: %v\n", rf.me, rf.log)
 	rf.ChangetoFollower()
-	// initialize from state persisted before a crash
-	// rf.readPersist(persister.ReadRaftState())
 	go rf.WaitBeatRoutine()
 	return rf
 }
